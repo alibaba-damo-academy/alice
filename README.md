@@ -84,7 +84,12 @@ python3 -m torch.distributed.launch --nproc_per_node=8 main-DDP.py
 
 # Citation
 If you find this repository useful, please consider citing Alice paper:
-
+@article{jiang2023anatomical,
+  title={Anatomical Invariance Modeling and Semantic Alignment for Self-supervised Learning in 3D Medical Image Segmentation},
+  author={Jiang, Yankai and Sun, Mingze and Guo, Heng and Yan, Ke and Lu, Le and Xu, Minfeng},
+  journal={arXiv preprint arXiv:2302.05615},
+  year={2023}
+}
 
 # References
 [1]: Yan K, Cai J, Jin D, et al. SAM: Self-supervised learning of pixel-wise anatomical embeddings in radiological images[J]. IEEE Transactions on Medical Imaging, 2022, 41(10): 2658-2669.
