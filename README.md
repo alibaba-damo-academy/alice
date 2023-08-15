@@ -9,7 +9,7 @@ ICCV, 2023, oral <br/>
 # Overview of Alice
 This repository contains the code for Alice (Anatomical Invariance Modeling and Semantic Alignment for Self-supervised Learning in 3D Medical Image Analysis). The architecture of Alice is illustrated below:
 
-![image](./assets/Figure2.png)
+![image](./assets/pipeline.pdf)
 
 In Alice, a conditional anatomical semantic alignment (CASA) module is proposed to match the most related highlevel semantics between the crafted contrastive views. An overview of the CASA module is presented in the following:
 
