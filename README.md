@@ -11,9 +11,10 @@ This repository contains the code for Alice (Anatomical Invariance Modeling and 
 
 ![image](./asset/fig2.jpg)
 
-In Alice, a conditional anatomical semantic alignment (CASA) module is proposed to match the most related highlevel semantics between the crafted contrastive views. An overview of the CASA module is presented in the following:
+In Alice, a conditional anatomical semantic alignment (CASA) module is proposed to match the most related high level semantics between the crafted contrastive views. An overview of the CASA module is presented in the following:
 
 ![image](./asset/fig3.jpg)
+<img src="https://github.com/alibaba-damo-academy/alice/blob/master/asset/fig3.jpg" width="200" height="200"/>
 
 Qualitative visualizations of segmentation results:
 
