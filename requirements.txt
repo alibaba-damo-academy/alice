@@ -1,0 +1,13 @@
+easydict
+scipy
+scikit-image
+pandas
+numpy
+openpyxl
+SimpleITK==2.0.2
+torch==1.7.0+cu101
+torchvision==0.8.1+cu101
+markdown==3.2
+mmcv-full==1.5.2
+line_profiler
+pyAesCrypt

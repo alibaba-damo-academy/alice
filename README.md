@@ -85,13 +85,17 @@ python3 -m torch.distributed.launch --nproc_per_node=8 main-DDP.py
 # Citation
 If you find this repository useful, please consider citing Alice paper:
 ```
-@article{jiang2023anatomical,
-  title={Anatomical Invariance Modeling and Semantic Alignment for Self-supervised Learning in 3D Medical Image Segmentation},
-  author={Jiang, Yankai and Sun, Mingze and Guo, Heng and Yan, Ke and Lu, Le and Xu, Minfeng},
-  journal={arXiv preprint arXiv:2302.05615},
+@inproceedings{jiang2023anatomical,
+  title={Anatomical Invariance Modeling and Semantic Alignment for Self-supervised Learning in 3D Medical Image Analysis},
+  author={Jiang, Yankai and Sun, Mingze and Guo, Heng and Bai, Xiaoyu and Yan, Ke and Lu, Le and Xu, Minfeng},
+  booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision},
+  pages={15859--15869},
   year={2023}
 }
 ```
+
+# Acknowledgement
+This code is based on the implementations of [MAE](https://github.com/facebookresearch/mae), [SimMIM](https://github.com/microsoft/SimMIM), [SAM](https://github.com/alibaba-damo-academy/self-supervised-anatomical-embedding-v2), [SwinTransformer](https://github.com/microsoft/Swin-Transformer), [iBOT](https://github.com/bytedance/ibot), and [DINO](https://github.com/facebookresearch/dino). We deeply appreciate all these exceptional and inspiring works!
 
 # References
 [1]: Yan K, Cai J, Jin D, et al. SAM: Self-supervised learning of pixel-wise anatomical embeddings in radiological images[J]. IEEE Transactions on Medical Imaging, 2022, 41(10): 2658-2669.
