@@ -1,6 +1,6 @@
 # Paper
 Anatomical Invariance Modeling and Semantic Alignment for Self-supervised Learning in 3D Medical Image Analysis  <br/>
-[Yankai Jiang]<sup>1,3</sup>, [Mingze Sun]<sup>1,4</sup>, [Heng Cuo]<sup>1,2</sup>,  [Xiaoyu Bai]<sup>1</sup>, [Ke Yan]<sup>1,2</sup>, [Le Lu]<sup>1</sup>, [Minfeng Xu]<sup>1,2</sup> <br/>
+[Yankai Jiang]<sup>1,3</sup>, [Mingze Sun]<sup>1,4</sup>, [Heng Guo]<sup>1,2</sup>,  [Xiaoyu Bai]<sup>1</sup>, [Ke Yan]<sup>1,2</sup>, [Le Lu]<sup>1</sup>, [Minfeng Xu]<sup>1,2</sup> <br/>
 <sup>1 </sup>DAMO Academy, Alibaba Group,   <sup>2 </sup>Hupan Lab,  <br/>
 <sup>3 </sup>College of Computer Science and Technology, Zhejiang University, <br/>
 <sup>4 </sup>Tsinghua Shenzhen International Graduate School, Tsinghua-Berkeley Shenzhen Institute, China <br/>
