@@ -11,9 +11,33 @@ import torch.nn.functional as F
 import torchio as tio
 from mmcv.parallel import MMDataParallel
 
-from sam.datasets.piplines import Resample, RescaleIntensity, GenerateMetaInfo, Collect3d
+from sam.datasets.pipelines import Resample, RescaleIntensity, GenerateMetaInfo, Collect3d
 from sam.datasets.collect import collate
 
+def read_info(data_name, norm_spacing=(2., 2., 2.), crop_loc=None, is_MRI=False, to_canonical=True,
+               remove_bed=False):
+    data_path = '/mnt/data/oss_beijing/jiangyankai/AbdomenAtlas_wEmb/' + data_name + '/ct.nii.gz'
+    img_tio = tio.ScalarImage(data_path)
+    if to_canonical:
+        ToCanonical = tio.ToCanonical()
+        img_tio = ToCanonical(img_tio)
+    # print(img_tio.spacing)
+    if img_tio.orientation == ('R', 'A', 'S'):
+        img_data = img_tio.data
+        img_tio.data = torch.flip(img_data, (1, 2))
+        img_tio.affine = np.array(
+            [-img_tio.affine[0, :], -img_tio.affine[1, :], img_tio.affine[2, :], img_tio.affine[3, :]])
+    assert img_tio.orientation == ('L', 'P', 'S'), print('right now the image orientation need to be LPS+ ')
+    img_data = img_tio.data
+    img_tio.data = img_data.permute(0, 2, 1, 3)
+    img_tio.affine = np.array(
+        [img_tio.affine[1, :], img_tio.affine[0, :], img_tio.affine[2, :], img_tio.affine[3, :]])
+
+    img_tio_shape = img_tio.data.shape
+    img_tio_spacing = img_tio.spacing
+    #img_tio_affine = img_tio.affine
+    norm_ratio = np.array(img_tio_spacing) / np.array(norm_spacing)
+    return norm_ratio, img_tio_shape
 
 def init_model(config, checkpoint):
     print('Initializing SAM model ...')
@@ -86,10 +110,14 @@ def find_point_in_vol(query_data, key_data, query_points, cfg):
 
 
 def extract_point_emb(query_data, query_points, cfg):
-    query_points = np.array(query_points) * query_data['im_norm_ratio']
+    im_norm_ratio, _ = read_info(query_data[3])
+    #query_points = np.array(query_points) * query_data['im_norm_ratio']
+    query_points = np.array(query_points) * im_norm_ratio
     query_points = np.floor(query_points / cfg.local_emb_stride).astype(int)
-    coarse_query_vol = query_data['coarse_emb']
-    fine_query_vol = query_data['fine_emb']
+    #coarse_query_vol = query_data['coarse_emb']
+    coarse_query_vol = query_data[1]
+    #fine_query_vol = query_data['fine_emb']
+    fine_query_vol = query_data[0]
     coarse_query_vol = F.interpolate(coarse_query_vol, fine_query_vol.shape[2:], mode='trilinear')
     coarse_query_vol = F.normalize(coarse_query_vol, dim=1)
     if 'semantic' in cfg:
@@ -128,7 +156,8 @@ def extract_point_emb(query_data, query_points, cfg):
 
 
 def match_vec_in_vol(coarse_query_vec, fine_query_vec, key_data, cfg, sem_query_vec=None):
-    coarse_key_vol, fine_key_vol = key_data['coarse_emb'], key_data['fine_emb']
+    #coarse_key_vol, fine_key_vol = key_data['coarse_emb'], key_data['fine_emb']
+    coarse_key_vol, fine_key_vol = key_data[1], key_data[0]
     sem_key_vol = key_data['sem_emb'] if not sem_query_vec is None else None
 
     # is it correct to interpolate embeddings? Will it mix neighboring pixels?
@@ -169,8 +198,12 @@ def match_vec_in_vol_single(coarse_key_vol, fine_key_vol, coarse_query_vec, fine
     ind = torch.argmax(sim, dim=1).cpu().numpy()
     zyx = np.unravel_index(ind, fine_key_vol.shape[2:])
     xyz = np.vstack(zyx)[::-1] * cfg.local_emb_stride + .5  # add .5 to closer to stride center
-    xyz = xyz.T / key_data['im_norm_ratio']
-    xyz = np.minimum(np.round(xyz.astype(int)), np.array(key_data['im_shape'])[::-1] - 1)
+    im_norm_ratio, _ = read_info(key_data[3])
+    #xyz = xyz.T / key_data['im_norm_ratio']
+    xyz = xyz.T / im_norm_ratio
+    _, im_shape = read_info(key_data[3])
+    #xyz = np.minimum(np.round(xyz.astype(int)), np.array(key_data['im_shape'])[::-1] - 1)
+    xyz = np.minimum(np.round(xyz.astype(int)), im_shape[1:])
 
     # interp sim to ori image size, no need to rescale points, maybe more accurate, similar speed, more memory
     # sim = (sim_fine + sim_coarse)/2
@@ -203,7 +236,9 @@ def match_vec_in_vol_ensemble(coarse_key_vol, fine_key_vol, coarse_query_vec, fi
         ind = torch.argmax(sim, dim=1).cpu().numpy()
         zyx = np.unravel_index(ind, fine_key_vol.shape[2:])
         xyz = np.vstack(zyx)[::-1] * cfg.local_emb_stride + .5  # add .5 to closer to stride center
-        xyz = xyz.T / key_data['im_norm_ratio']
+        #xyz = xyz.T / key_data['im_norm_ratio']
+        im_norm_ratio, _ = read_info(key_data[3])
+        xyz = xyz.T / im_norm_ratio
         max_sim = sim.max(dim=1)[0].cpu().numpy()
 
         # average ensemble
@@ -212,7 +247,9 @@ def match_vec_in_vol_ensemble(coarse_key_vol, fine_key_vol, coarse_query_vec, fi
         max_sim = max_sim.mean(axis=0)
         max_sims.append(max_sim)
     xyzs = np.vstack(xyzs)
-    xyzs = np.minimum(np.round(xyzs.astype(int)), np.array(key_data['im_shape'])[::-1] - 1)
+    #xyzs = np.minimum(np.round(xyzs.astype(int)), np.array(key_data['im_shape'])[::-1] - 1)
+    _, im_shape = read_info(key_data[3])
+    xyzs = np.minimum(np.round(xyzs.astype(int)), im_shape[1:])
     max_sims = np.hstack(max_sims)
 
     return xyzs, max_sims

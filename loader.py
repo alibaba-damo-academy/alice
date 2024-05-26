@@ -37,18 +37,19 @@ from monai.data import (
 
 def get_loader(args):
     datadir = args.data_dir
-    jsonlist = os.path.join(datadir, args.json_list)
+    #jsonlist = os.path.join(datadir, args.json_list)
+    jsonlist = args.json_list
     num_workers = args.num_workers
     
-    num_none_list = [669, 966, 1567]
+    #num_none_list = [669, 966, 1567]
     
     new_datalist = []
     datalist = load_decathlon_datalist(jsonlist, False, "training", base_dir=datadir)
     for item in datalist:
-        item_name = ''.join(item['image']).split('.')[0].split('/')[-1]
+        item_name = ''.join(item['image']).split('.')[0].split('/')[-2]
         item_num = int(''.join(item_name).split('_')[1])
-        if item_num in num_none_list:
-            continue
+        #if item_num in num_none_list:
+            #continue
         
         item_dict = {'image': item['image'], 'name': item_name}
         new_datalist.append(item_dict)
@@ -56,10 +57,10 @@ def get_loader(args):
     new_vallist = []
     vallist = load_decathlon_datalist(jsonlist, False, "validation", base_dir=datadir)
     for item in vallist:
-        item_name = ''.join(item['image']).split('.')[0].split('/')[-1]
+        item_name = ''.join(item['image']).split('.')[0].split('/')[-2]
         item_num = int(''.join(item_name).split('_')[1])
-        if item_num in num_none_list:
-            continue
+        #if item_num in num_none_list:
+            #continue
         
         item_dict = {'image': item['image'], 'name': item_name}
         new_vallist.append(item_dict)

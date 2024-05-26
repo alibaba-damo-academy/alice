@@ -49,11 +49,23 @@ def validation(args, student, teacher, alice_loss, test_loader, epoch, sam_cfg, 
             #image = batch['image'].cuda(non_blocking=True)
             image = batch['image'].to(args.local_rank, non_blocking=True)
             name1 = batch['name'][0]
-            emb1 = np.load(args.embed_dir+name1+'.npy', allow_pickle=True).item()
+            
+            emb_path_1 = args.embed_dir + 'Embeddings' + name1 + '.pkl'
+            with open(emb_path_1, 'rb') as file:
+                emb1 = pickle.load(file)
+            #emb1 = np.load(args.embed_dir+name1+'.npy', allow_pickle=True).item()
+            
+            #new_add
+            #if epoch == 0:
+            memory_queue_patch = batch
         
             memory_image = memory_queue_patch['image']
             name2 = memory_queue_patch['name'][0]
-            emb2 = np.load(args.embed_dir+name2+'.npy', allow_pickle=True).item()
+            
+            emb_path_2 = args.embed_dir + 'Embeddings' + name2 + '.pkl'
+            with open(emb_path_2, 'rb') as file_2:
+                emb2 = pickle.load(file_2)
+            #emb2 = np.load(args.embed_dir+name2+'.npy', allow_pickle=True).item()
         
             pts = utils.select_random_points(1, image.transpose(2, 4))
             pts1 = pts[0]
@@ -92,12 +104,4 @@ def validation(args, student, teacher, alice_loss, test_loader, epoch, sam_cfg, 
         print("Averaged validation stats:", metric_logger)
         return_dict = {k: meter.global_avg for k, meter in metric_logger.meters.items()}
     
-    return return_dict              
-
-if __name__ == '__main__':
-    #parser = argparse.ArgumentParser('Alice', parents=[get_args_parser()])
-    #args = parser.parse_args()
-    #torch.cuda.set_device(args.local_rank)
-    #Path(args.output_dir).mkdir(parents=True, exist_ok=True)
-    #validation(args)
-    print("validation done!")
+    return return_dict

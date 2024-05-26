@@ -12,6 +12,7 @@ import torch
 import torch.distributed as dist
 import torch.nn as nn
 
+from torchvision import datasets, transforms
 from collections import defaultdict, deque
 from pathlib import Path
 from torch import nn

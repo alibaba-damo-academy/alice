@@ -16,6 +16,7 @@ import torch.nn.functional as F
 from tqdm import tqdm
 from models.nnFormer import nnFormer
 from interfaces import init_model, get_embedding, find_point_in_vol
+import pickle
 
 from pathlib import Path
 from PIL import Image
@@ -28,6 +29,7 @@ from loader import get_loader
 from loss import Loss
 from CASA import CASA_Module
 from engine_pretrain import train_one_epoch
+from validation import validation
 #Dp
 from torch.multiprocessing import Process
 import torch.utils.data.distributed
@@ -94,7 +96,7 @@ def get_args_parser():
         loss over [CLS] tokens (Default: 1.0)""")
     parser.add_argument('--lambda2', default=1.0, type=float, help="""loss weight for contrastive 
         loss over patch token embeddings (Default: 1.0)""")
-    parser.add_argument('--lambda3', default=1.0, type=float, help="""loss weight for MAE 
+    parser.add_argument('--lambda3', default=10, type=float, help="""loss weight for MAE 
         loss over masked patch tokens (Default: 1.0)""")       
     # Temperature teacher parameters
     parser.add_argument('--warmup_teacher_temp', default=0.008, type=float,
@@ -123,7 +125,7 @@ def get_args_parser():
     parser.add_argument('--clip_grad', type=float, default=3.0, help="""Maximal parameter
         gradient norm if using gradient clipping. Clipping with norm .3 ~ 1.0 can
         help optimization for larger ViT architectures. 0 for disabling.""")
-    parser.add_argument('--epochs', default=500, type=int, help='Number of epochs of training.')
+    parser.add_argument('--epochs', default=1000, type=int, help='Number of epochs of training.')
     parser.add_argument('--freeze_last_layer', default=1, type=int, help="""Number of epochs
         during which we keep the output layer fixed. Typically doing so during
         the first epoch helps training. Try increasing this value if the loss does not decrease.""")
@@ -162,17 +164,17 @@ def get_args_parser():
     parser.add_argument('--mask_ratio', default=0.75, help='mask ratio')
     
     # Misc
-    parser.add_argument("--data_dir", default="/mnt/workspace/Flare/Dataset/", type=str, help="dataset directory")
-    parser.add_argument("--json_list", default="pretrainset.json", type=str, help="dataset json file")
+    parser.add_argument("--data_dir", default="/mnt/data/oss_beijing/jiangyankai/", type=str, help="dataset directory")
+    parser.add_argument("--json_list", default="/mnt/workspace/jiangyankai/Alice_code/datasets/pretrainset_test.json", type=str, help="dataset json file")
     parser.add_argument('--output_dir', default="./results/final-ddp/", type=str, help='Path to save logs and checkpoints.')
-    parser.add_argument('--embed_dir', default="/mnt/workspace/workgroup/Flare/embedding/", type=str, help='Path to save logs and checkpoints.')
+    parser.add_argument('--embed_dir', default="/mnt/data/oss_beijing/jiangyankai/AbdomenAtlas_Prcessed/", type=str, help='Path to save logs and checkpoints.')
     parser.add_argument('--config_file', default="./configs/sam/sam_r18_i3d_fpn_1x_multisets_sgd_T_0.5_half_test.py", type=str, help='Path to save logs and checkpoints.')
-    parser.add_argument('--checkpoint_file', default="./PointMatch/iter_38000.pth", type=str, help='Path to save logs and checkpoints.')
+    parser.add_argument('--checkpoint_file', default="./checkpoints_SAM/SAM.pth", type=str, help='Path to save logs and checkpoints.')
     
     parser.add_argument('--saveckp_freq', default=10, type=int, help='Save checkpoint every x epochs.')
     parser.add_argument('--eval_epoch', default=10, type=int, help='evaluation frequency')
     parser.add_argument('--seed', default=123, type=int, help='Random seed.')
-    parser.add_argument('--num_workers', default=5, type=int, help='Number of data loading workers per GPU.')
+    parser.add_argument('--num_workers', default=1, type=int, help='Number of data loading workers per GPU.')
     parser.add_argument("--dist_url", default="env://", type=str, help="""url used to set up
         distributed training; see https://pytorch.org/docs/stable/distributed.html""")
     parser.add_argument("--local_rank", default=0, type=int, help="Please ignore and do not set this argument.")
@@ -393,7 +395,7 @@ def train_Alice(args):
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print('Training time {}'.format(total_time_str))
-
+     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Alice', parents=[get_args_parser()])
     args = parser.parse_args()

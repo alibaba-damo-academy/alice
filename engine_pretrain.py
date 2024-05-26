@@ -16,6 +16,7 @@ import torch.nn.functional as F
 from tqdm import tqdm
 from models.nnFormer import nnFormer
 from interfaces import init_model, get_embedding, find_point_in_vol
+import pickle
 
 from pathlib import Path
 from PIL import Image
@@ -66,17 +67,24 @@ def train_one_epoch(student, teacher, teacher_without_ddp, alice_loss, data_load
                 param_group["weight_decay"] = wd_schedule[it]
 
         # move images to gpu
-        #image = batch['image'].cuda(non_blocking=True)
+        # image = batch['image'].cuda(non_blocking=True)
         image = batch['image'].to(args.local_rank, non_blocking=True)
         name1 = batch['name'][0]
-        emb1 = np.load(args.embed_dir+name1+'.npy', allow_pickle=True).item()
+        #emb1 = np.load(args.embed_dir+name1+'.npy', allow_pickle=True).item()
+        emb_path_1 = args.embed_dir + 'Embeddings' + name1 + '.pkl'
+        with open(emb_path_1, 'rb') as file:
+            emb1 = pickle.load(file)
+            #print(emb1[0].shape, emb1[1].shape, emb1[2].shape, emb1[3])
         
         if epoch == 0 and iters == 0:
             memory_queue_patch = batch
         
         memory_image = memory_queue_patch['image']
         name2 = memory_queue_patch['name'][0]
-        emb2 = np.load(args.embed_dir+name2+'.npy', allow_pickle=True).item() 
+        #emb2 = np.load(args.embed_dir+name2+'.npy', allow_pickle=True).item()
+        emb_path_2 = args.embed_dir + 'Embeddings' + name2 + '.pkl'
+        with open(emb_path_2, 'rb') as file_2:
+            emb2 = pickle.load(file_2)
         
         iter_points, scores = 0, 0
         while iter_points<=100 and scores<=0.7:
